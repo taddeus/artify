@@ -122,6 +122,8 @@ let replace_pat_safe = function
 let replace_pat_unsafe =
   let both_double x y = if x = y then x else '-' in
   let pick_double x s = UTF8.get s (if x = '=' then 1 else 0) in
+  let is_dash x = x = '-' || x = '=' in
+  let are_dash x y = is_dash x && is_dash y in
   function
   |  _ , ' ',  _ ,
     ' ', '+', ' ',
@@ -138,33 +140,33 @@ let replace_pat_unsafe =
   |  _ ,  _ ,  _ ,
     ' ', '+', ' ',
      _ , ' ',  _   -> u "╵"
-  |  _ , ' ',  _ ,
-    ' ', '+',  x ,
-     _ ,  _ ,  _   -> pick_double x "┌╒"
-  |  _ ,  _ ,  _ ,
-    ' ', '+',  x ,
-     _ , ' ',  _   -> pick_double x "└╘"
-  |  _ , ' ',  _ ,
-     x , '+', ' ',
-     _ ,  _ ,  _   -> pick_double x "┐╕"
-  |  _ ,  _ ,  _ ,
-     x , '+', ' ',
-     _ , ' ',  _   -> pick_double x "┘╛"
-  |  _ , ' ',  _ ,
-     x , '+',  y ,
-     _ ,  _ ,  _   -> pick_double (both_double x y) "┬╤"
-  |  _ ,  _ ,  _ ,
-     x , '+',  y ,
-     _ , ' ',  _   -> pick_double (both_double x y) "┴╧"
-  |  _ ,  _ ,  _ ,
-    ' ', '+',  x ,
-     _ ,  _ ,  _   -> pick_double x "├╞"
-  |  _ ,  _ ,  _ ,
-     x , '+', ' ',
-     _ ,  _ ,  _   -> pick_double x "┤╡"
-  |  _ ,  _ ,  _ ,
-     x , '+',  y ,
-     _ ,  _ ,  _   -> pick_double (both_double x y) "┼╪"
+  |  _ , ' '      ,  _ ,
+    ' ', ('+'|','),  x ,
+     _ ,  _       ,  _   when is_dash x -> pick_double x "┌╒"
+  |  _ ,     _    ,  _ ,
+    ' ', ('+'|'`'),  x ,
+     _ ,    ' '   ,  _   when is_dash x -> pick_double x "└╘"
+  |  _ ,    ' '   ,  _ ,
+     x , ('+'|'.'), ' ',
+     _ ,     _    ,  _   when is_dash x -> pick_double x "┐╕"
+  |  _ ,     _    ,  _ ,
+     x , ('+'|'\''), ' ',
+     _ ,    ' '   ,  _   when is_dash x -> pick_double x "┘╛"
+  |  _ ,    ' '   ,  _ ,
+     x ,    '+'   ,  y ,
+     _ ,     _    ,  _   when are_dash x y -> pick_double (both_double x y) "┬╤"
+  |  _ ,     _    ,  _ ,
+     x ,    '+'   ,  y ,
+     _ ,    ' '   ,  _   when are_dash x y -> pick_double (both_double x y) "┴╧"
+  |  _ ,     _    , _ ,
+    ' ', ('+'|'|'),  x,
+     _ ,     _    ,  _   when is_dash x -> pick_double x "├╞"
+  |  _ ,     _    ,  _ ,
+     x , ('+'|'|'), ' ',
+     _ ,     _    ,  _   when is_dash x -> pick_double x "┤╡"
+  |  _ ,     _    ,  _ ,
+     x , ('+'|'|'),  y ,
+     _ ,     _    ,  _   when are_dash x y -> pick_double (both_double x y) "┼╪"
 
   |     _    ,     _    ,     _    ,
         _    ,    '-'   , ('-'|'+'),
